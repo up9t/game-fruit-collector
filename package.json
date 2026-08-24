@@ -1,6 +1,6 @@
 {
 	"name": "game-fruit-collector",
-	"version": "1.1.0",
+	"version": "1.2.0",
 	"private": true,
 	"type": "module",
 	"scripts": {
@@ -8,21 +8,25 @@
 		"build": "vite build",
 		"build:github": "vite build --mode=github",
 		"preview": "vite preview",
-		"format": "biome check --write"
+		"format": "oxfmt src/",
+		"lint": "oxlint src/"
 	},
 	"dependencies": {
-		"vue": "^3.5.24"
+		"vue": "^3.5.40"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "2.3.11",
-		"@types/node": "^24.10.1",
-		"@vitejs/plugin-vue": "^6.0.1",
-		"@vue/tsconfig": "^0.8.1",
-		"typescript": "~5.9.3",
-		"vite": "npm:rolldown-vite@7.2.5",
-		"vue-tsc": "^3.1.4"
+		"@tsconfig/node24": "^24.0.4",
+		"@types/node": "^26.2.0",
+		"@vitejs/plugin-vue": "^6.0.8",
+		"@vue/tsconfig": "^0.9.1",
+		"oxfmt": "^0.64.0",
+		"oxlint": "^1.79.0",
+		"typescript": "~6.0.0",
+		"vite": "^8.1.5",
+		"vite-plugin-vue-devtools": "^8.1.5",
+		"vue-tsc": "^3.3.7"
 	},
-	"overrides": {
-		"vite": "npm:rolldown-vite@7.2.5"
+	"engines": {
+		"node": "^22.18.0 || >=24.12.0"
 	}
 }
