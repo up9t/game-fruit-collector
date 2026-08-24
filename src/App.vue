@@ -16,71 +16,60 @@ import fruitImg from "./assets/images/fruit.png";
 const canvasElement = ref<HTMLCanvasElement | null>(null);
 
 onMounted(() => {
-	const canvasElem = canvasElement.value;
-	if (!canvasElem) throw new Error("failed to get canvas element");
+  const canvasElem = canvasElement.value;
+  if (!canvasElem) throw new Error("failed to get canvas element");
 
-	const context = canvasElem.getContext("2d");
-	if (!context) throw new Error("failed to retrieve rendering context");
+  const context = canvasElem.getContext("2d");
+  if (!context) throw new Error("failed to retrieve rendering context");
 
-	const playerImage = new Image();
-	const fruitImage = new Image();
+  const playerImage = new Image();
+  const fruitImage = new Image();
 
-	playerImage.src = playerImg;
-	fruitImage.src = fruitImg;
+  playerImage.src = playerImg;
+  fruitImage.src = fruitImg;
 
-	const canvas = new Canvas(
-		canvasElem,
-		Settings.CANVAS_WIDTH,
-		Settings.CANVAS_HEIGHT,
-	);
+  const canvas = new Canvas(canvasElem, Settings.CANVAS_WIDTH, Settings.CANVAS_HEIGHT);
 
-	const player = new Player(
-		canvas.width / (Settings.COLUMN - 1),
-		canvas.height - canvas.height / 10,
-		canvas.width / Settings.COLUMN,
-		60,
-		Math.floor(Settings.COLUMN / 2) as TColumnPosition,
-	);
+  const player = new Player(
+    canvas.width / (Settings.COLUMN - 1),
+    canvas.height - canvas.height / 10,
+    canvas.width / Settings.COLUMN,
+    60,
+    Math.floor(Settings.COLUMN / 2) as TColumnPosition,
+  );
 
-	const fruits: Array<IFruit> = [];
-	const fruitDrawers: Array<FruitDrawer> = [];
+  const fruits: Array<IFruit> = [];
+  const fruitDrawers: Array<FruitDrawer> = [];
 
-	const playerDrawer = new PlayerDrawer(player, canvas.context, playerImage);
-	const gameState = new GameState(fruits, canvas.canvasElement);
+  const playerDrawer = new PlayerDrawer(player, canvas.context, playerImage);
+  const gameState = new GameState(fruits, canvas.canvasElement);
 
-	const game = new Game(
-		gameState,
-		canvas,
-		fruitDrawers,
-		playerDrawer,
-		player,
-		fruits,
-	);
+  const game = new Game(gameState, canvas, fruitDrawers, playerDrawer, player, fruits);
 
-	new KeyboardInput(player);
+  new KeyboardInput(player);
 
-	// start only when the image was loaded
-	const start = () => {
-		let i = 0;
-		return () => {
-			++i;
-			if (i === 2) {
-				// spawn a fruit every specific time
-				game.state.spawner = setInterval(
-					() => Fruit.spawn(fruits, game, fruitDrawers, fruitImage),
-					Settings.FRUIT_SPAWN_TIME,
-				);
+  // start only when the image was loaded
+  const start = () => {
+    let i = 0;
+    return () => {
+      ++i;
+      if (i === 2) {
+        // spawn a fruit every specific time
+        game.state.spawner = setInterval(
+          () => Fruit.spawn(fruits, game, fruitDrawers, fruitImage),
+          Settings.FRUIT_SPAWN_TIME,
+        );
 
-				// game start
-				game.state.startId = requestAnimationFrame(() => game.play());
-			}
-		};
-	};
+        // game start
+        game.onStart();
+      }
+    };
+  };
 
-	const ready = start();
+  const ready = start();
 
-	playerImage.addEventListener("load", ready);
-	fruitImage.addEventListener("load",  ready);
+  playerImage.addEventListener("load", ready);
+  fruitImage.addEventListener("load", ready);
 });
 </script>
 
@@ -89,4 +78,7 @@ onMounted(() => {
 </template>
 
 <style scoped>
+canvas {
+  background-color: #242424;
+}
 </style>
