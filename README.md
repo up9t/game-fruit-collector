@@ -4,16 +4,27 @@ Fruit is spawn from above, catch it, you only have 3 chance to fail!
 
 ![fruit](https://github.com/SiapaLupa/fruit-collector-game/assets/110075636/0f61601f-9329-45a4-b876-064e0cbce49d)
 
+## Diagram
+
+```mermaid
+flowchart TD
+  I[Input] --> G
+
+  M[Main Loop] --> R[Renderer]
+  M --> G[Game]
+  R --> |Get State| G
+```
+
 ## Installation
 
 1. Install node dependencies
 ```shell
-npm install
+npm ci
 ```
 
 2. Build
 ```shell
-npm run build:prod
+npm run build
 ```
 
 3. Copy html file
@@ -30,11 +41,6 @@ cp src/index.html dist/index.html
 docker build -t game-fruit-collector .
 ```
 
-2. Run
-```sh
-docker run --rm --mount type=bind,source=$(PWD)/dist,target=/home/dist game-fruit-collector
-```
-
 3. On your directory, open the ./dist/index.html
 
 ## TODOs
@@ -46,4 +52,3 @@ docker run --rm --mount type=bind,source=$(PWD)/dist,target=/home/dist game-frui
 - Add: Different types of fruit
 - Add: Different types of basket (player)
 - Feat: Multiplayer duel
-- Fix: unconsistent frame rates
