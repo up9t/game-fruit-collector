@@ -1,19 +1,20 @@
-import type { IPlayer } from "../models/player";
+import type Game from "../game.ts";
 
-export interface TwoMoveControl {
-  moveLeft(): void;
-  moveRight(): void;
-}
-
-export default class KeyboardInput {
-  public constructor(player: IPlayer) {
-    addEventListener("keydown", (evt: KeyboardEvent): void => {
-      const actions = {
-        ArrowLeft: player.moveLeft,
-        ArrowRight: player.moveRight,
-      };
-
-      actions[evt.key as keyof typeof actions]?.call(player);
-    });
-  }
+export function InitKeyboardInput(game: Game) {
+  addEventListener("keydown", (event) => {
+    switch (event.key) {
+      case "a":
+      case "A":
+      case "ArrowLeft":
+        game.moveLeft();
+        break;
+      case "d":
+      case "D":
+      case "ArrowRight":
+        game.moveRight();
+        break;
+      default:
+        break;
+    }
+  });
 }

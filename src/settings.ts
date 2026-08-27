@@ -8,4 +8,7 @@ export default {
   CANVAS_HEIGHT: innerHeight,
   CANVAS_WIDTH: 500,
   SCORE_INCREMENT: 10,
+  get COLUMN_WIDTH() {
+    return this.CANVAS_WIDTH / this.COLUMN;
+  },
 } as const;

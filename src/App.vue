@@ -1,80 +1,118 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
-import Canvas from "./canvas";
-import type { TColumnPosition } from "./common/types";
-import type FruitDrawer from "./drawers/fruit-drawer";
-import PlayerDrawer from "./drawers/player-drawer";
+import { onMounted, ref, render } from "vue";
+import CanvasRenderer from "./renderer.ts";
 import Game from "./game";
-import GameState from "./game-state";
-import KeyboardInput from "./input/keyboard";
-import Fruit, { type IFruit } from "./models/fruit";
-import Player from "./models/player";
 import Settings from "./settings";
-import playerImg from "./assets/images/cart.png";
-import fruitImg from "./assets/images/fruit.png";
+import { GameOverEvent } from "./events/game.ts";
+import Basket from "./entities/basket.ts";
+import { InitKeyboardInput } from "./input/keyboard.ts";
+import playerSrc from "./assets/images/cart.png";
+import fruitSrc from "./assets/images/fruit.png";
 
-const canvasElement = ref<HTMLCanvasElement | null>(null);
+const canvasElementRef = ref<HTMLCanvasElement | null>(null);
 
 onMounted(() => {
-  const canvasElem = canvasElement.value;
-  if (!canvasElem) throw new Error("failed to get canvas element");
+  const canvasElement = canvasElementRef.value;
+  if (!canvasElement) throw new Error("failed to get canvas element");
 
-  const context = canvasElem.getContext("2d");
+  const context = canvasElement.getContext("2d");
   if (!context) throw new Error("failed to retrieve rendering context");
 
   const playerImage = new Image();
   const fruitImage = new Image();
 
-  playerImage.src = playerImg;
-  fruitImage.src = fruitImg;
+  playerImage.src = playerSrc;
+  fruitImage.src = fruitSrc;
 
-  const canvas = new Canvas(canvasElem, Settings.CANVAS_WIDTH, Settings.CANVAS_HEIGHT);
+  canvasElement.width = Settings.CANVAS_WIDTH;
+  canvasElement.height = Settings.CANVAS_HEIGHT;
 
-  const player = new Player(
-    canvas.width / (Settings.COLUMN - 1),
-    canvas.height - canvas.height / 10,
-    canvas.width / Settings.COLUMN,
-    60,
-    Math.floor(Settings.COLUMN / 2) as TColumnPosition,
+  const player = new Basket(
+    Math.floor(Settings.COLUMN / 2),
+    canvasElement.clientHeight - canvasElement.clientHeight / 10,
+    Settings.COLUMN_WIDTH - 30,
+    30,
   );
 
-  const fruits: Array<IFruit> = [];
-  const fruitDrawers: Array<FruitDrawer> = [];
+  const assetManager = new Map<string, HTMLImageElement>();
+  const renderer = new CanvasRenderer(canvasElement, assetManager);
 
-  const playerDrawer = new PlayerDrawer(player, canvas.context, playerImage);
-  const gameState = new GameState(fruits, canvas.canvasElement);
+  assetManager.set(playerSrc, playerImage);
+  assetManager.set(fruitSrc, fruitImage);
 
-  const game = new Game(gameState, canvas, fruitDrawers, playerDrawer, player, fruits);
+  const game = new Game(player, Settings.COLUMN, Settings.CANVAS_HEIGHT);
 
-  new KeyboardInput(player);
+  InitKeyboardInput(game);
 
   // start only when the image was loaded
+  let hasStarted = false;
+  let readyCount = 0;
   const start = () => {
-    let i = 0;
-    return () => {
-      ++i;
-      if (i === 2) {
-        // spawn a fruit every specific time
-        game.state.spawner = setInterval(
-          () => Fruit.spawn(fruits, game, fruitDrawers, fruitImage),
-          Settings.FRUIT_SPAWN_TIME,
-        );
+    ++readyCount;
+    if (!hasStarted && readyCount >= assetManager.size) {
+      hasStarted = true;
+      console.log("asdasd");
+      // game.Ready then 3 seconds countdown game.onStart()
+      const countdown = 3;
+      let intervalID: number | undefined;
 
-        // game start
-        game.onStart();
-      }
-    };
+      setTimeout(() => {
+        renderer.hasStarted = true;
+        game.start();
+        clearInterval(intervalID);
+      }, countdown * 1000);
+
+      let j = countdown;
+
+      renderer.countdown = j--;
+      intervalID = setInterval(() => {
+        renderer.countdown = j--;
+      }, 1000);
+    }
   };
 
-  const ready = start();
+  let startId: number | undefined;
+  let lastTime: number = 0;
+  let gameOver = false;
 
-  playerImage.addEventListener("load", ready);
-  fruitImage.addEventListener("load", ready);
+  game.addEventListener(GameOverEvent.EVENT_NAME, (event) => {
+    // play sound or something
+    gameOver = true;
+    return;
+  });
+
+  const loop = (currentTime: number) => {
+    if (gameOver && typeof startId === "number") {
+      cancelAnimationFrame(startId);
+      return;
+    }
+
+    if (lastTime === 0) {
+      lastTime = performance.now();
+    }
+
+    game.update((currentTime - lastTime) / 1000);
+    renderer.render(game.getState());
+
+    lastTime = currentTime;
+
+    startId = requestAnimationFrame(loop);
+  };
+
+  startId = requestAnimationFrame(loop);
+
+  assetManager.forEach((img) => {
+    if (img.complete) {
+      start();
+    } else {
+      img.addEventListener("load", start);
+    }
+  });
 });
 </script>
 
 <template>
-  <canvas ref="canvasElement"></canvas>
+  <canvas ref="canvasElementRef"></canvas>
 </template>
 
 <style scoped>
